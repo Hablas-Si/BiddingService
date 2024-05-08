@@ -1,0 +1,19 @@
+# .NET
+*.obj
+*.bin
+*.dll
+*.exe
+*.pdb
+*.user
+*.suo
+*.tmp
+*.log
+*.vscode
+*.vs
+.DS_Store
+obj/Debug/
+
+# NuGet
+*.nuget.props
+*.lock.json
+packages/
