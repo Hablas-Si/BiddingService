@@ -4,7 +4,22 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Company, Authors og Copyright oplysninger -->
+
+    <Company>Hablas Si#</Company>
+    <Authors>Kasper, Asbjørn, Chi Linh, Rasmus og Jakob.</Authors>
+    <Copyright>Hablas Si#</Copyright>
+
+    <!-- Versionsoplysninger -->
+    <AssemblyVersion>1.0.1.1</AssemblyVersion>
+    <FileVersion>1.0.1.1</FileVersion>
+    <InformationalVersion>1.0.0</InformationalVersion>
+    <Description>
+      1.0.0 Updated with semantic versioning
+    </Description>
   </PropertyGroup>
+  
 
   <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
