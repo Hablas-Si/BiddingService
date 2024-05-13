@@ -5,16 +5,18 @@ using BiddingService.Models;
 namespace BiddingService.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("bids")]
     public class BiddingController : ControllerBase
     {
         private readonly ILogger<BiddingController> _logger;
+        private readonly IConfiguration _config;
         private readonly IBiddingRepository _service;
 
-        public BiddingController(ILogger<BiddingController> logger, IBiddingRepository service)
+        public BiddingController(ILogger<BiddingController> logger,IConfiguration config, IBiddingRepository service)
         {
             _logger = logger;
-            this._service = service;
+            _config = config;
+            _service = service;
         }
 
         [HttpPost]
@@ -30,7 +32,13 @@ namespace BiddingService.Controllers
             _service.SubmitBid(bid);
 
             // Return success response
-            return Ok("Bid submitted successfully");
+            return Ok("Bid submitted");
+        }
+        [HttpPost("get/{auctionID}")]
+        public async Task<IActionResult> GetAuctionBids([FromRoute] Guid auctionID)
+        {
+            var bids = await _service.GetAuctionBids(auctionID);
+            return Ok(bids);
         }
     }
 }
