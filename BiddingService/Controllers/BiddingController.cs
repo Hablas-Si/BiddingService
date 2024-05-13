@@ -20,7 +20,7 @@ namespace BiddingService.Controllers
         }
 
         [HttpPost]
-        public IActionResult PostBid([FromBody] Bid bid)
+        public IActionResult SubmitBid([FromBody] Bid bid)
         {
             // Check if the bid is null or invalid
             if (bid.BidOwnerID == null || !ModelState.IsValid)

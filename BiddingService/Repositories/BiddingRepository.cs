@@ -3,7 +3,7 @@ using BiddingService.Models;
 using MongoDB.Driver;
 using MongoDB.Bson;
 using Microsoft.Extensions.Options;
-using Models;
+using BiddingService.Models;
 
 namespace BiddingService.Repositories
 {

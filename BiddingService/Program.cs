@@ -2,7 +2,7 @@ using BiddingService.Repositories;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson;
-using Models;
+using BiddingService.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
