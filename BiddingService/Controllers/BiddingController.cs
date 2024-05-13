@@ -20,10 +20,10 @@ namespace BiddingService.Controllers
         }
 
         [HttpPost]
-        public IActionResult PostBid([FromBody] Bid bid)
+        public IActionResult SubmitBid([FromBody] Bid bid)
         {
             // Check if the bid is null or invalid
-            if (bid.BidderName == null || !ModelState.IsValid)
+            if (bid.BidOwnerID == null || !ModelState.IsValid)
             {
                 return BadRequest("Husk, at dit bud skal indeholde både BidderName og Amount. Se dokumentationen for yderligere info");
             }
