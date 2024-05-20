@@ -19,11 +19,11 @@ namespace BiddingService.Controllers
             _service = service;
         }
 
-        [HttpPost("{auctionID}")]
-        public IActionResult SubmitBid(Guid auctionID, [FromBody] Bid bid)
+        [HttpPost]
+        public IActionResult SubmitBid([FromBody] Bid bid)
         {
             // Submit the bid
-            _service.SubmitBid(bid, auctionID);
+            _service.SubmitBid(bid);
 
             // Return success response
             return Ok("Bid submitted");
