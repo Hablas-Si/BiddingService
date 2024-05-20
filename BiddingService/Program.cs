@@ -15,7 +15,7 @@ string myIssuer = Environment.GetEnvironmentVariable("Issuer") ?? "none";
 
 builder.Services.Configure<MongoDBSettings>(options =>
 {
-    options.ConnectionURI = Environment.GetEnvironmentVariable("ConnectionURI") ?? throw new ArgumentNullException("ConnectionURI environment variable not set"); 
+    //options.ConnectionURI = Environment.GetEnvironmentVariable("ConnectionURI") ?? throw new ArgumentNullException("ConnectionURI environment variable not set"); 
 });
 // tilføjer Repository til services
 builder.Services.AddSingleton<IBiddingRepository, BiddingRepository>();
