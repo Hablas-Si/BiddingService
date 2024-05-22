@@ -6,7 +6,6 @@ using System.Text.Json;
 using System.Text;
 using System.Collections.Concurrent;
 using MongoDB.Bson.IO;
-using BiddingService.Models;
 
 namespace BiddingService.Repositories
 {
@@ -34,32 +33,43 @@ namespace BiddingService.Repositories
             return bids;
         }
 
-        //In-Memory storage of highest bid
-        private static ConcurrentDictionary<Guid, Lazy<Task<int>>> highestBids = new ConcurrentDictionary<Guid, Lazy<Task<int>>>();
+        //In-Memory storage of ongoing auctions to avoid constant calls between services
+        private static ConcurrentDictionary<Guid, Lazy<Task<LocalAuctionDetails>>> StoredAuctions = new ConcurrentDictionary<Guid, Lazy<Task<LocalAuctionDetails>>>();
 
         // Method to validate and update the highest bid if the new bid is higher
         public async Task<bool> SubmitBid(Bid bid)
         {
-            int currentHighestBid = await GetOrCheckHighBid(bid.Auction); //Gets current high bid
+            var auctionDetails = await GetOrCheckAuctionDetails(bid.Auction); // Gets current high bid and end time
 
-            if (bid.Amount > currentHighestBid)
+
+            if (bid.Amount > auctionDetails.HighestBid && DateTime.UtcNow.AddHours(2) < auctionDetails.EndTime)
             {
-                // Update the highest bid in memory (Still using lazy because otherwize the type freaks out)
-                highestBids[bid.Auction] = new Lazy<Task<int>>(() => Task.FromResult(bid.Amount));
+                // Update the highest bid
+                StoredAuctions[bid.Auction] = new Lazy<Task<LocalAuctionDetails>>(() => Task.FromResult(new LocalAuctionDetails
+                {
+                    HighestBid = bid.Amount,
+                    EndTime = auctionDetails.EndTime //If we don't re-add this, it sets itself to 01-01-0001 which breaks the validation.
+                }));
 
+                //Declaring bid status as accepted
                 bid.Accepted = true;
-                await BidCollection.InsertOneAsync(bid); //Inserting bid into bidserviec database
 
-                var newBid = new HighBid { Amount = bid.Amount, userName = bid.BidOwner }; //Preparing new highbid object
+                // Inserting bid into bid service database
+                await BidCollection.InsertOneAsync(bid);
 
-                // Post the new highest bid to the external service
+                // Preparing new high bid object
+                var newBid = new HighBid { Amount = bid.Amount, userName = bid.BidOwner }; 
+
+                // Post the new highest bid to AuctionService
                 await SubmitValidatedBid(bid.Auction, newBid);
-
             }
             else
             {
+                // Declare bid status as false - validation has failed
                 bid.Accepted = false;
-                await BidCollection.InsertOneAsync(bid); //Inserts into bidservice database to retain bid-history
+
+                // Insert into bid service database to retain bid history
+                await BidCollection.InsertOneAsync(bid);
             }
 
             return bid.Accepted;
@@ -68,29 +78,31 @@ namespace BiddingService.Repositories
         /*VALIDATION OF BIDS*/
 
         // Method to get or check the highest bid for a given auction ID
-        public async Task<int> GetOrCheckHighBid(Guid auctionID)
+        public async Task<LocalAuctionDetails> GetOrCheckAuctionDetails(Guid auctionID)
         {
-            var lazyResult = highestBids.GetOrAdd(auctionID, id =>
-            new Lazy<Task<int>>(() => GetHighestBidExternal(id)));
+            var lazyResult = StoredAuctions.GetOrAdd(auctionID, id =>
+                new Lazy<Task<LocalAuctionDetails>>(async () =>
+                {
+                    var auctionDetails = await GetAuctionDetailsExternal(id);
+                    Console.WriteLine($"Fetched highest bid for auction {id}: {auctionDetails.HighestBid}");
+                    return auctionDetails;
+                }));
 
-            // Ensure the Lazy task is awaited properly
-            var highestBid = await lazyResult.Value;
-            Console.WriteLine($"Fetched highest bid for auction {auctionID}: {highestBid}");
-            return highestBid;
+            var details = await lazyResult.Value;
+            return details;
         }
 
         // Method to fetch the highest bid from an external service by retrieving the entire auction element
-        private async Task<int> GetHighestBidExternal(Guid auctionID)
+        private async Task<LocalAuctionDetails> GetAuctionDetailsExternal(Guid auctionID)
         {
             var httpClient = new HttpClient();
 
-            
             var response = await httpClient.GetAsync($"http://localhost:5188/Auction/{auctionID}");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
 
-            //Ignore case sensitivity in property names as they differ slightly between services :/
+            // Ignore case sensitivity in property names as they differ slightly between services
             var options = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
@@ -98,8 +110,12 @@ namespace BiddingService.Repositories
 
             var auction = JsonSerializer.Deserialize<Auction>(content, options);
 
-            //Return the amount of the highest bid if it exists; otherwise, return 0 [Implemented to avoid weird null-errors]
-            return auction.HighBid?.Amount ?? 0;
+            // Return auction details
+            return new LocalAuctionDetails
+            {
+                HighestBid = auction.HighBid.Amount,
+                EndTime = auction.End
+            };
         }
 
         //MEthod to submit a bid to auction-service, after it has been validated
@@ -115,6 +131,6 @@ namespace BiddingService.Repositories
             response.EnsureSuccessStatusCode();
         }
 
-        
+
     }
 }
