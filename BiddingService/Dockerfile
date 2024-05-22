@@ -1,29 +1,11 @@
-# Use the .NET SDK image for the build stage
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
-
-# Set the working directory in the container
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine as build
 WORKDIR /app
 
-# Copy the solution file
-COPY biddingservice/BiddingServiceSolution.sln ./
+COPY BiddingServiceSolution.sln/ .   
+RUN dotnet restore
+RUN dotnet publish -c Release -o /app/published-app
 
-# Copy all the project files
-COPY biddingservice/BiddingService/ ./BiddingService/
-
-# Restore dependencies
-RUN dotnet restore ./BiddingService/BiddingService.csproj
-
-# Publish the application
-RUN dotnet publish ./BiddingService/BiddingService.csproj -c Release -o /app/published-app
-
-# Use the .NET runtime image for the runtime stage
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS runtime
-
-# Set the working directory in the container
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine as runtime
 WORKDIR /app
-
-# Copy the published application from the build stage
-COPY --from=build /app/published-app ./
-
-# Define the entry point for the application
+COPY --from=build /app/published-app /app
 ENTRYPOINT ["dotnet", "BiddingService.dll"]
