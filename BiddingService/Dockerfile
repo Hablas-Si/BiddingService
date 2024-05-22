@@ -1,23 +1,12 @@
-# Use the official dotnet SDK 8.0 alpine image for the build phase
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine as build
 WORKDIR /app
 
-# Copy all files from the BiddingService directory to the working directory
-COPY BiddingService/ .
+COPY . .
+RUN dotnet restore
+RUN dotnet publish -o /app/published-app
 
-# Copy the solution file into the working directory
-COPY BiddingServiceSolution.sln .
-
-# Specify the solution file for dotnet restore and then the project for dotnet publish
-RUN dotnet restore BiddingServiceSolution.sln
-RUN dotnet publish BiddingService/BiddingService.csproj -c Release -o /app/published-app
-
-# Use the official dotnet ASP.NET 8.0 alpine image for runtime
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine as runtime
 WORKDIR /app
-
-# Copy the published application from the build image
 COPY --from=build /app/published-app /app
 
-# Run the application
-ENTRYPOINT ["dotnet", "BiddingService.dll"]
+ENTRYPOINT ["dotnet", "/app/BiddingService.dll"]
