@@ -20,13 +20,22 @@ namespace BiddingService.Controllers
         }
 
         [HttpPost]
-        public IActionResult SubmitBid([FromBody] Bid bid)
+        public async Task<IActionResult> SubmitBid([FromBody] Bid bid)
         {
             // Submit the bid
-            _service.SubmitBid(bid);
+            bool bidAccepted = await _service.SubmitBid(bid);
 
-            // Return success response
-            return Ok("Bid submitted");
+            // Check if the bid was accepted
+            if (bidAccepted)
+            {
+                // Return success response
+                return Ok("Bid submitted");
+            }
+            else
+            {
+                // Return failure response
+                return BadRequest("Please doublecheck your bid amount and the end date of the auction");
+            }
         }
 
         [HttpGet("get/{auctionID}")]
