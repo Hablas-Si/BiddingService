@@ -5,8 +5,11 @@ WORKDIR /app
 # Copy all files from the BiddingService directory to the working directory
 COPY BiddingService/ .
 
-# Specify the exact project file for dotnet restore and dotnet publish
-RUN dotnet restore BiddingService/BiddingService.csproj
+# Copy the solution file into the working directory
+COPY BiddingServiceSolution.sln .
+
+# Specify the solution file for dotnet restore and then the project for dotnet publish
+RUN dotnet restore BiddingServiceSolution.sln
 RUN dotnet publish BiddingService/BiddingService.csproj -c Release -o /app/published-app
 
 # Use the official dotnet ASP.NET 8.0 alpine image for runtime
