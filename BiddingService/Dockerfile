@@ -6,10 +6,10 @@ WORKDIR /app
 COPY BiddingService/ .
 
 # Specify the exact solution or project file for dotnet restore
-RUN dotnet restore "BiddingService/BiddingService.csproj"
+RUN dotnet restore BiddingService/BiddingService.csproj
 
 # Build and publish the application
-RUN dotnet publish "BiddingService/BiddingService.csproj" -c Release -o /app/published-app
+RUN dotnet publish BiddingService/BiddingService.csproj -c Release -o /app/published-app
 
 # Use the official dotnet ASP.NET 8.0 alpine image for runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS runtime
