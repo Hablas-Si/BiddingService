@@ -28,4 +28,4 @@ jobs:
       - name: Push Docker image to Docker Hub
         env:
           DOCKER_USER: ${{ secrets.DOCKER_USER }}
-        run: docker push ${DOCKER_USER}/auctions_authservice-image:1.0.0
+        run: docker push ${DOCKER_USER}/biddingservice-image:1.0.0
