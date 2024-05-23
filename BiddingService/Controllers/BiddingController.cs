@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace BiddingService.Controllers
 {
     [ApiController]
-    [Route("bids")]
+    [Route("api/[controller]")]
     public class BiddingController : ControllerBase
     {
         private readonly ILogger<BiddingController> _logger;
