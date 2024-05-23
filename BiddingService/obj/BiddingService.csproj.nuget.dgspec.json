@@ -45,6 +45,14 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "Microsoft.AspNet.WebApi.Client": {
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[8.0.5, )"
+            },
             "MongoDB.Bson": {
               "target": "Package",
               "version": "[2.25.0, )"
@@ -53,9 +61,37 @@
               "target": "Package",
               "version": "[2.25.0, )"
             },
+            "Nlog": {
+              "target": "Package",
+              "version": "[5.3.2, )"
+            },
+            "Nlog.Targets.Loki": {
+              "target": "Package",
+              "version": "[2.2.0, )"
+            },
+            "Nlog.Web": {
+              "target": "Package",
+              "version": "[5.3.11, )"
+            },
+            "Nlog.Web.AspNetCore": {
+              "target": "Package",
+              "version": "[5.3.11, )"
+            },
+            "RabbitMQ.Client": {
+              "target": "Package",
+              "version": "[6.8.1, )"
+            },
+            "StackExchange.Redis": {
+              "target": "Package",
+              "version": "[2.7.33, )"
+            },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
               "version": "[6.4.0, )"
+            },
+            "VaultSharp": {
+              "target": "Package",
+              "version": "[1.13.0.1, )"
             }
           },
           "imports": [
