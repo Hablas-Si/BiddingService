@@ -1,4 +1,4 @@
-namespace BiddingService.Models
+namespace BiddingService.Settings
 {
     public class MongoDBSettings
     {

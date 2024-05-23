@@ -5,7 +5,9 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text;
 using System.Collections.Concurrent;
-using MongoDB.Bson.IO;
+using StackExchange.Redis;
+using BiddingService.Services;
+using BiddingService.Settings;
 
 namespace BiddingService.Repositories
 {
@@ -13,12 +15,18 @@ namespace BiddingService.Repositories
     {
         private readonly IMongoCollection<Bid> BidCollection;
 
-        public BiddingRepository(IOptions<MongoDBSettings> mongoDBSettings)
+        private readonly RedisCacheService _redisCacheService;
+
+        private readonly RabbitMQPublisher _publisher;
+
+        public BiddingRepository(IOptions<MongoDBSettings> mongoDBSettings, RedisCacheService redisCacheService, RabbitMQPublisher publisher)
         {
             // trækker connection string og database navn og collectionname fra program.cs aka fra terminalen ved export. Dette er en constructor injection.
             MongoClient client = new MongoClient(mongoDBSettings.Value.ConnectionURI);
             IMongoDatabase database = client.GetDatabase(mongoDBSettings.Value.DatabaseName);
             BidCollection = database.GetCollection<Bid>(mongoDBSettings.Value.CollectionName);
+            _redisCacheService = redisCacheService;
+            _publisher = publisher;
         }
 
         public async Task<List<Bid>> GetAuctionBids(Guid auctionID)
@@ -33,40 +41,31 @@ namespace BiddingService.Repositories
             return bids;
         }
 
-        //In-Memory storage of ongoing auctions to avoid constant calls between services
-        private static ConcurrentDictionary<Guid, Lazy<Task<LocalAuctionDetails>>> StoredAuctions = new ConcurrentDictionary<Guid, Lazy<Task<LocalAuctionDetails>>>();
-
         // Method to validate and update the highest bid if the new bid is higher
         public async Task<bool> SubmitBid(Bid bid)
         {
             var auctionDetails = await GetOrCheckAuctionDetails(bid.Auction); // Gets current high bid and end time
 
-
             if (bid.Amount > auctionDetails.HighestBid && DateTime.UtcNow.AddHours(2) < auctionDetails.EndTime)
             {
-                // Update the highest bid
-                StoredAuctions[bid.Auction] = new Lazy<Task<LocalAuctionDetails>>(() => Task.FromResult(new LocalAuctionDetails
-                {
-                    HighestBid = bid.Amount,
-                    EndTime = auctionDetails.EndTime //If we don't re-add this, it sets itself to 01-01-0001 which breaks the validation.
-                }));
+                // Update the highest bid in Redis cache
+                auctionDetails.HighestBid = bid.Amount;
+                await _redisCacheService.SetAuctionDetailsAsync(bid.Auction, auctionDetails);
 
-                //Declaring bid status as accepted
+                // Declaring bid status as accepted
                 bid.Accepted = true;
 
                 // Inserting bid into bid service database
                 await BidCollection.InsertOneAsync(bid);
 
                 // Preparing new high bid object
-                var newBid = new HighBid { Amount = bid.Amount, userName = bid.BidOwner }; 
+                var newBid = new BidMessage { AuctionId = bid.Id,Amount = bid.Amount, Bidder = bid.BidOwner };
 
                 // Post the new highest bid to AuctionService
-                await SubmitValidatedBid(bid.Auction, newBid);
+                await SubmitValidatedBid(newBid);
             }
             else
             {
-                // Declare bid status as false - validation has failed
-                bid.Accepted = false;
 
                 // Insert into bid service database to retain bid history
                 await BidCollection.InsertOneAsync(bid);
@@ -80,15 +79,21 @@ namespace BiddingService.Repositories
         // Method to get or check the highest bid for a given auction ID
         public async Task<LocalAuctionDetails> GetOrCheckAuctionDetails(Guid auctionID)
         {
-            var lazyResult = StoredAuctions.GetOrAdd(auctionID, id =>
-                new Lazy<Task<LocalAuctionDetails>>(async () =>
-                {
-                    var auctionDetails = await GetAuctionDetailsExternal(id);
-                    Console.WriteLine($"Fetched highest bid for auction {id}: {auctionDetails.HighestBid}");
-                    return auctionDetails;
-                }));
+            // Attempt to retrieve auction details from Redis cache
+            var auctionDetails = await _redisCacheService.GetAuctionDetailsAsync(auctionID);
 
-            var details = await lazyResult.Value;
+            // If auction details are found in cache, return them
+            if (auctionDetails != null)
+            {
+                return auctionDetails;
+            }
+
+            // Auction details not found in cache, fetch from external source
+            var details = await GetAuctionDetailsExternal(auctionID);
+
+            // Store the fetched auction details in Redis cache
+            await _redisCacheService.SetAuctionDetailsAsync(auctionID, details);
+
             return details;
         }
 
@@ -119,16 +124,15 @@ namespace BiddingService.Repositories
         }
 
         //MEthod to submit a bid to auction-service, after it has been validated
-        private async Task SubmitValidatedBid(Guid auctionID, HighBid newBid)
+        private async Task SubmitValidatedBid(BidMessage newBid)
         {
-            var httpClient = new HttpClient();
-            var requestContent = new StringContent(JsonSerializer.Serialize(newBid), Encoding.UTF8, "application/json");
 
-            // Replace the URL with the actual endpoint of the external service
-            var response = await httpClient.PutAsync($"http://localhost:5188/Auction/{auctionID}/bid", requestContent);
+            var message = newBid;
+
+            _publisher.PublishBidMessage(message);
 
             // Ensure the request was successful
-            response.EnsureSuccessStatusCode();
+            
         }
 
 
