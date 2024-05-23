@@ -22,7 +22,7 @@ namespace BiddingService.Repositories
         public BiddingRepository(IOptions<MongoDBSettings> mongoDBSettings, RedisCacheService redisCacheService, RabbitMQPublisher publisher)
         {
             // trækker connection string og database navn og collectionname fra program.cs aka fra terminalen ved export. Dette er en constructor injection.
-            MongoClient client = new MongoClient(mongoDBSettings.Value.ConnectionURI);
+            MongoClient client = new MongoClient(mongoDBSettings.Value.ConnectionAuctionDB);
             IMongoDatabase database = client.GetDatabase(mongoDBSettings.Value.DatabaseName);
             BidCollection = database.GetCollection<Bid>(mongoDBSettings.Value.CollectionName);
             _redisCacheService = redisCacheService;

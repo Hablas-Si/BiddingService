@@ -1,27 +1,26 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\jakob\\Documents\\BiddingServiceApp\\BiddingService\\BiddingService.csproj": {}
+    "/Users/chilinhm/Desktop/AuctionHouse/BiddingService/BiddingService/BiddingService/BiddingService.csproj": {}
   },
   "projects": {
-    "C:\\Users\\jakob\\Documents\\BiddingServiceApp\\BiddingService\\BiddingService.csproj": {
+    "/Users/chilinhm/Desktop/AuctionHouse/BiddingService/BiddingService/BiddingService/BiddingService.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\jakob\\Documents\\BiddingServiceApp\\BiddingService\\BiddingService.csproj",
+        "projectUniqueName": "/Users/chilinhm/Desktop/AuctionHouse/BiddingService/BiddingService/BiddingService/BiddingService.csproj",
         "projectName": "BiddingService",
-        "projectPath": "C:\\Users\\jakob\\Documents\\BiddingServiceApp\\BiddingService\\BiddingService.csproj",
-        "packagesPath": "C:\\Users\\jakob\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\jakob\\Documents\\BiddingServiceApp\\BiddingService\\obj\\",
+        "projectPath": "/Users/chilinhm/Desktop/AuctionHouse/BiddingService/BiddingService/BiddingService/BiddingService.csproj",
+        "packagesPath": "/Users/chilinhm/.nuget/packages/",
+        "outputPath": "/Users/chilinhm/Desktop/AuctionHouse/BiddingService/BiddingService/BiddingService/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\jakob\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/Users/chilinhm/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "/usr/local/share/dotnet/library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -45,6 +44,14 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "Microsoft.AspNet.WebApi.Client": {
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[8.0.5, )"
+            },
             "MongoDB.Bson": {
               "target": "Package",
               "version": "[2.25.0, )"
@@ -52,6 +59,22 @@
             "MongoDB.Driver": {
               "target": "Package",
               "version": "[2.25.0, )"
+            },
+            "Nlog": {
+              "target": "Package",
+              "version": "[5.3.2, )"
+            },
+            "Nlog.Targets.Loki": {
+              "target": "Package",
+              "version": "[2.2.0, )"
+            },
+            "Nlog.Web": {
+              "target": "Package",
+              "version": "[5.3.11, )"
+            },
+            "Nlog.Web.AspNetCore": {
+              "target": "Package",
+              "version": "[5.3.11, )"
             },
             "RabbitMQ.Client": {
               "target": "Package",
@@ -64,6 +87,10 @@
             "Swashbuckle.AspNetCore": {
               "target": "Package",
               "version": "[6.4.0, )"
+            },
+            "VaultSharp": {
+              "target": "Package",
+              "version": "[1.13.0.1, )"
             }
           },
           "imports": [
@@ -85,7 +112,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.202/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.204/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
