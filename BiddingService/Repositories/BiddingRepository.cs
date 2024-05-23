@@ -5,8 +5,9 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text;
 using System.Collections.Concurrent;
-using MongoDB.Bson.IO;
-using BiddingService.Models;
+using StackExchange.Redis;
+using BiddingService.Services;
+using BiddingService.Settings;
 
 namespace BiddingService.Repositories
 {
@@ -14,46 +15,20 @@ namespace BiddingService.Repositories
     {
         private readonly IMongoCollection<Bid> BidCollection;
 
-        public BiddingRepository(IOptions<MongoDBSettings> mongoDBSettings)
+        private readonly RedisCacheService _redisCacheService;
+
+        private readonly RabbitMQPublisher _publisher;
+
+        public BiddingRepository(IOptions<MongoDBSettings> mongoDBSettings, RedisCacheService redisCacheService, RabbitMQPublisher publisher)
         {
             // trækker connection string og database navn og collectionname fra program.cs aka fra terminalen ved export. Dette er en constructor injection.
             MongoClient client = new MongoClient(mongoDBSettings.Value.ConnectionURI);
             IMongoDatabase database = client.GetDatabase(mongoDBSettings.Value.DatabaseName);
             BidCollection = database.GetCollection<Bid>(mongoDBSettings.Value.CollectionName);
+            _redisCacheService = redisCacheService;
+            _publisher = publisher;
         }
 
-        public int GetHighestBid(Guid auctionID)
-        {
-            return 200; //dummy value till auctionService is implemented
-        }
-
-        public bool ValidateBid(Bid bid)
-        {
-            bid.Accepted = bid.Amount > GetHighestBid(bid.Auction);
-            return bid.Accepted;
-        }
-
-        //public async Task SubmitBid(Bid bid, Guid auctionID)
-        //{
-        //    bid.Accepted = ValidateBid(bid);
-
-        //    if (bid.Accepted)
-        //    {
-        //        Console.WriteLine($"Bid submitted: {bid}");
-        //        await BidCollection.InsertOneAsync(bid);
-        //        var hBid = new HighBid
-        //        {
-        //            userName = bid.BidOwner,
-        //            Amount = bid.Amount
-        //        };
-        //        await PostToOtherService(hBid, auctionID);
-        //    }
-        //    else
-        //    {
-        //        Console.WriteLine($"Bid rejected: {bid}");
-        //        await BidCollection.InsertOneAsync(bid);
-        //    }
-        //}
         public async Task<List<Bid>> GetAuctionBids(Guid auctionID)
         {
             // Define a filter to find bids with the given auctionID
@@ -66,102 +41,73 @@ namespace BiddingService.Repositories
             return bids;
         }
 
-        //public async Task PostToOtherService(HighBid bid, Guid auctionID)
-        //{
-        //    try
-        //    {
-        //        // Serialize the bid object into JSON
-        //        string jsonBid = JsonSerializer.Serialize(bid);
-
-        //        // Create an instance of HttpClient
-        //        using (var client = new HttpClient())
-        //        {
-        //            // Set the content type header to "application/json"
-        //            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-        //            // Construct the URL with auctionID using string interpolation
-        //            string url = $"http://localhost:5188/Auction/{auctionID}/bid";
-
-        //            // Make the PUT request to the endpoint of the other service
-        //            var response = await client.PutAsync(url, new StringContent(jsonBid, Encoding.UTF8, "application/json"));
-
-        //            // Check if the request was successful
-        //            if (response.IsSuccessStatusCode)
-        //            {
-        //                // Log the successful submission
-        //                Console.WriteLine($"Bid submitted to other service for auction {auctionID}: {bid}");
-        //            }
-        //            else
-        //            {
-        //                // Log if the request failed
-        //                Console.WriteLine($"Failed to submit bid to other service for auction {auctionID}: {bid}");
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // Log any exceptions that occur
-        //        Console.WriteLine($"An error occurred while submitting bid to other service: {ex.Message}");
-        //    }
-        //}
-
-
-        /*VALIDATION OF BID*/
-
-        //In-Memory storage of highest bid
-        private static ConcurrentDictionary<Guid, Lazy<Task<int>>> highestBids = new ConcurrentDictionary<Guid, Lazy<Task<int>>>();
-
-        // Method to get or initialize the highest bid for a given auction ID
-        public async Task<int> GetOrInitializeHighestBidAsync(Guid auctionID)
-        {
-            var lazyResult = highestBids.GetOrAdd(auctionID, id =>
-            new Lazy<Task<int>>(() => FetchHighestBidFromServiceAsync(id)));
-
-            // Ensure the Lazy task is awaited properly
-            var highestBid = await lazyResult.Value;
-            Console.WriteLine($"Fetched highest bid for auction {auctionID}: {highestBid}");
-            return highestBid;
-        }
-
         // Method to validate and update the highest bid if the new bid is higher
         public async Task<bool> SubmitBid(Bid bid)
         {
-            int currentHighestBid = await GetOrInitializeHighestBidAsync(bid.Auction);
+            var auctionDetails = await GetOrCheckAuctionDetails(bid.Auction); // Gets current high bid and end time
 
-            if (bid.Amount > currentHighestBid)
+            if (bid.Amount > auctionDetails.HighestBid && DateTime.UtcNow.AddHours(2) < auctionDetails.EndTime)
             {
-                // Update the highest bid in memory (Still using lazy because otherwize the type freaks out)
-                highestBids[bid.Auction] = new Lazy<Task<int>>(() => Task.FromResult(bid.Amount));
+                // Update the highest bid in Redis cache
+                auctionDetails.HighestBid = bid.Amount;
+                await _redisCacheService.SetAuctionDetailsAsync(bid.Auction, auctionDetails);
 
+                // Declaring bid status as accepted
                 bid.Accepted = true;
+
+                // Inserting bid into bid service database
                 await BidCollection.InsertOneAsync(bid);
 
-                var newBid = new HighBid { Amount = bid.Amount, userName = bid.BidOwner };
+                // Preparing new high bid object
+                var newBid = new BidMessage { AuctionId = bid.Id,Amount = bid.Amount, Bidder = bid.BidOwner };
 
-                // Post the new highest bid to the external service (assuming this is required)
-                await PutHighestBidToExternalServiceAsync(bid.Auction, newBid);
-                
+                // Post the new highest bid to AuctionService
+                await SubmitValidatedBid(newBid);
             }
             else
             {
-                bid.Accepted = false;
+
+                // Insert into bid service database to retain bid history
                 await BidCollection.InsertOneAsync(bid);
             }
 
             return bid.Accepted;
         }
 
+        /*VALIDATION OF BIDS*/
+
+        // Method to get or check the highest bid for a given auction ID
+        public async Task<LocalAuctionDetails> GetOrCheckAuctionDetails(Guid auctionID)
+        {
+            // Attempt to retrieve auction details from Redis cache
+            var auctionDetails = await _redisCacheService.GetAuctionDetailsAsync(auctionID);
+
+            // If auction details are found in cache, return them
+            if (auctionDetails != null)
+            {
+                return auctionDetails;
+            }
+
+            // Auction details not found in cache, fetch from external source
+            var details = await GetAuctionDetailsExternal(auctionID);
+
+            // Store the fetched auction details in Redis cache
+            await _redisCacheService.SetAuctionDetailsAsync(auctionID, details);
+
+            return details;
+        }
+
         // Method to fetch the highest bid from an external service by retrieving the entire auction element
-        private async Task<int> FetchHighestBidFromServiceAsync(Guid auctionID)
+        private async Task<LocalAuctionDetails> GetAuctionDetailsExternal(Guid auctionID)
         {
             var httpClient = new HttpClient();
 
-            // Replace the URL with the actual endpoint of the external service
             var response = await httpClient.GetAsync($"http://localhost:5188/Auction/{auctionID}");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
 
+            // Ignore case sensitivity in property names as they differ slightly between services
             var options = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
@@ -169,21 +115,26 @@ namespace BiddingService.Repositories
 
             var auction = JsonSerializer.Deserialize<Auction>(content, options);
 
-            return auction.HighBid?.Amount ?? 0;
+            // Return auction details
+            return new LocalAuctionDetails
+            {
+                HighestBid = auction.HighBid.Amount,
+                EndTime = auction.End
+            };
         }
 
-        private async Task PutHighestBidToExternalServiceAsync(Guid auctionID, HighBid newBid)
+        //MEthod to submit a bid to auction-service, after it has been validated
+        private async Task SubmitValidatedBid(BidMessage newBid)
         {
-            var httpClient = new HttpClient();
-            var requestContent = new StringContent(JsonSerializer.Serialize(newBid), Encoding.UTF8, "application/json");
 
-            // Replace the URL with the actual endpoint of the external service
-            var response = await httpClient.PutAsync($"http://localhost:5188/Auction/{auctionID}/bid", requestContent);
+            var message = newBid;
+
+            _publisher.PublishBidMessage(message);
 
             // Ensure the request was successful
-            response.EnsureSuccessStatusCode();
+            
         }
 
-        
+
     }
 }
