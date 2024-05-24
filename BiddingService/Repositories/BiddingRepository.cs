@@ -28,7 +28,7 @@ namespace BiddingService.Repositories
             _redisCacheService = redisCacheService;
             _publisher = publisher;
         }
-
+        //Method gets all bids posted to a specific auction. Both accepted and unaccepted ones
         public async Task<List<Bid>> GetAuctionBids(Guid auctionID)
         {
             // Define a filter to find bids with the given auctionID
@@ -46,6 +46,7 @@ namespace BiddingService.Repositories
         {
             var auctionDetails = await GetOrCheckAuctionDetails(bid.Auction); // Gets current high bid and end time
 
+            //This checks if given bid is higher than the existing one, and if auction is still live
             if (bid.Amount > auctionDetails.HighestBid && DateTime.UtcNow.AddHours(2) < auctionDetails.EndTime)
             {
                 // Update the highest bid in Redis cache
@@ -123,16 +124,16 @@ namespace BiddingService.Repositories
             };
         }
 
-        //MEthod to submit a bid to auction-service, after it has been validated
+        //Method to submit a bid to auction-service, after it has been validated
         private async Task SubmitValidatedBid(BidMessage newBid)
         {
 
             var message = newBid;
 
+            // Entering bid into RabbitMQ queue
             _publisher.PublishBidMessage(message);
 
-            // Ensure the request was successful
-
+            //This works but we should look into adding acknowledgement messaging to validate publish action has succeeded.
         }
 
 

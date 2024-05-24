@@ -1,5 +1,6 @@
 ﻿namespace BiddingService.Models
 {
+    //Class used by rabbitMQ to send bids to AuctionService
     public class BidMessage
     {
         public Guid AuctionId { get; set; }

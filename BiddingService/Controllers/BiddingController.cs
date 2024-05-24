@@ -25,7 +25,7 @@ namespace BiddingService.Controllers
         }
         
 
-        [HttpPost]
+        [HttpPost, Authorize(Roles = "User, Admin")]
         public async Task<IActionResult> SubmitBid([FromBody] Bid bid)
         {
             // Submit the bid
@@ -35,16 +35,17 @@ namespace BiddingService.Controllers
             if (bidAccepted)
             {
                 // Return success response
-                return Ok("Bid submitted");
+                return Ok("Bud modtaget");
             }
             else
             {
                 // Return failure response
-                return BadRequest("Please doublecheck your bid amount and the end date of the auction");
+                return BadRequest("Doublecheck venligst din indtastning. Bud skal være højere end det eksisterende, og du kan ikke byde på afsluttede auktioner");
             }
         }
 
-        [HttpGet("get/{auctionID}")]
+        
+        [HttpGet("get/{auctionID}"), Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAuctionBids([FromRoute] Guid auctionID)
         {
             var bids = await _service.GetAuctionBids(auctionID);
@@ -58,7 +59,7 @@ namespace BiddingService.Controllers
         {
 
             // Hvis brugeren har en gyldig JWT-token og rollen "Admin", vil denne metode blive udført
-            return Ok("You are authorized to access this resource.");
+            return Ok("Du har ret til at se denne ressource");
         }
 
         // En get der henter secrets ned fra vault
@@ -68,7 +69,7 @@ namespace BiddingService.Controllers
         {
             try
             {
-                _logger.LogInformation($"Getting secret with path {path}");
+                _logger.LogInformation($"Henter hemmelighed via {path}");
                 var secretValue = await _vaultService.GetSecretAsync(path);
                 if (secretValue != null)
                 {
@@ -81,8 +82,8 @@ namespace BiddingService.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error retrieving secret: {ex}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving secret.");
+                _logger.LogError($"Kunne ikke hente hemmelighed: {ex}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Hemmelighed kunne ikke hentes.");
             }
         }
     }
