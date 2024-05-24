@@ -28,6 +28,7 @@ BsonSerializer.RegisterSerializer(new GuidSerializer(BsonType.String));
 var vaultService = new VaultRepository(logger, builder.Configuration);
 var mySecret = await vaultService.GetSecretAsync("Secret");
 var myIssuer = await vaultService.GetSecretAsync("Issuer");
+var RedisPW = await vaultService.GetSecretAsync("RedisPW");
 // logger.Info($"Secret: {mySecret} and Issuer: {myIssuer}");
 if (mySecret == null || myIssuer == null)
 {
@@ -72,14 +73,14 @@ builder.Services.AddSingleton<IVaultRepository>(vaultService);
 builder.Services.AddSingleton<RedisCacheService>(sp =>
 {
     // Define the Redis password
-    string redisPassword = "0rIwX58ixdvj6btmfJrxvsxaMn3s4uta"; //OBS: HEMMELIGHED
+    string redisPassword = RedisPW; 
 
     // Define the default database index (e.g., 0)
-    int defaultDatabaseIndex = 0; //OBS: HEMMELIGHED?
+    int defaultDatabaseIndex = 0; 
 
     // Construct the Redis connection string with the password and default database index
-    string redisConnectionString = $"redis-16675.c56.east-us.azure.redns.redis-cloud.com:16675,DefaultDatabase={defaultDatabaseIndex},password={redisPassword}"; // OBS: HEMMELIGHED
-    return new RedisCacheService(redisConnectionString);
+    string redisConnectionString = $"redis-16675.c56.east-us.azure.redns.redis-cloud.com:16675,DefaultDatabase={defaultDatabaseIndex}";
+    return new RedisCacheService(redisConnectionString, redisPassword);
 });
 
 // Configure RabbitMQ settings OBS: BRUGER IKKE SETTINGSKLASSEN, MEN APPSETTINGS

@@ -5,5 +5,6 @@ namespace BiddingService.Repositories
     {
         Task<List<Bid>> GetAuctionBids(Guid auctionID);
         Task<bool> SubmitBid(Bid bid);
+        Task<LocalAuctionDetails> GetOrCheckAuctionDetails(Guid auctionID);
     }
 }
