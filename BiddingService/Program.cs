@@ -30,7 +30,9 @@ var mySecret = await vaultService.GetSecretAsync("Secret");
 var myIssuer = await vaultService.GetSecretAsync("Issuer");
 var RedisPW = await vaultService.GetSecretAsync("RedisPW");
 var redisConnect = await vaultService.GetSecretAsync("redisConnect");
-// logger.Info($"Secret: {mySecret} and Issuer: {myIssuer}");
+Console.WriteLine($"Secret: {mySecret} and Issuer: {myIssuer}");
+Console.WriteLine($"RedisPW: {RedisPW}");
+Console.WriteLine($"redisConnect: {redisConnect}");
 if (mySecret == null || myIssuer == null)
 {
     Console.WriteLine("Failed to retrieve secrets from Vault");
