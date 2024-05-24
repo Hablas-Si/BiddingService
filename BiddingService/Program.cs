@@ -29,6 +29,7 @@ var vaultService = new VaultRepository(logger, builder.Configuration);
 var mySecret = await vaultService.GetSecretAsync("Secret");
 var myIssuer = await vaultService.GetSecretAsync("Issuer");
 var RedisPW = await vaultService.GetSecretAsync("RedisPW");
+var redisConnect = await vaultService.GetSecretAsync("redisConnect");
 // logger.Info($"Secret: {mySecret} and Issuer: {myIssuer}");
 if (mySecret == null || myIssuer == null)
 {
@@ -79,7 +80,7 @@ builder.Services.AddSingleton<RedisCacheService>(sp =>
     int defaultDatabaseIndex = 0; 
 
     // Construct the Redis connection string with the password and default database index
-    string redisConnectionString = $"redis-16675.c56.east-us.azure.redns.redis-cloud.com:16675,DefaultDatabase={defaultDatabaseIndex}";
+    string redisConnectionString = $"{redisConnect},DefaultDatabase={defaultDatabaseIndex}";
     return new RedisCacheService(redisConnectionString, redisPassword);
 });
 
