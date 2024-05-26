@@ -1,47 +1,64 @@
-﻿using StackExchange.Redis; 
-using System.Text.Json; 
-using BiddingService.Models; 
+﻿using StackExchange.Redis;
+using System.Text.Json;
+using BiddingService.Models;
+using Microsoft.Extensions.Logging;
 
 namespace BiddingService.Services
 {
-    // Service class for interacting with Redis cache
     public class RedisCacheService
     {
-        private readonly ConnectionMultiplexer _redis; 
-        private readonly IDatabase _database; 
+        private readonly ConnectionMultiplexer _redis;
+        private readonly IDatabase _database;
+        private readonly ILogger<RedisCacheService> _logger;
 
-        // Constructor to initialize the RedisCacheService with a connection string
-        public RedisCacheService(string connectionString, string RedisPW)
+        public RedisCacheService(string connectionString, string redisPassword, ILogger<RedisCacheService> logger)
         {
-            // Parse the connection string and set the password
-            ConfigurationOptions options = ConfigurationOptions.Parse(connectionString);
-            options.Password = RedisPW; //this should add in the PW as it is no longer part of the connection string itself
+            _logger = logger;
+            try
+            {
+                _logger.LogInformation("Initializing RedisCacheService with connection string: {ConnectionString}", connectionString);
+                ConfigurationOptions options = ConfigurationOptions.Parse(connectionString);
+                options.Password = redisPassword;
 
-            // Connect to Redis using the configured options
-            _redis = ConnectionMultiplexer.Connect(options);
-
-            // Get a database instance from the connection multiplexer
-            _database = _redis.GetDatabase();
+                _redis = ConnectionMultiplexer.Connect(options);
+                _database = _redis.GetDatabase();
+                _logger.LogInformation("RedisCacheService initialized successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error initializing RedisCacheService.");
+                throw;
+            }
         }
 
-        // Method to set auction details in Redis cache asynchronously
         public async Task SetAuctionDetailsAsync(Guid auctionId, LocalAuctionDetails auctionDetails)
         {
-            // Serialize the auction details object to JSON
-            var json = JsonSerializer.Serialize(auctionDetails);
-
-            // Set the JSON string in Redis cache with an optional expiry time of 10 minutes
-            await _database.StringSetAsync(auctionId.ToString(), json, TimeSpan.FromMinutes(10));
+            try
+            {
+                var json = JsonSerializer.Serialize(auctionDetails);
+                await _database.StringSetAsync(auctionId.ToString(), json, TimeSpan.FromMinutes(10));
+                _logger.LogInformation("Set auction details for Auction ID: {AuctionId}", auctionId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error setting auction details for Auction ID: {AuctionId}", auctionId);
+                throw;
+            }
         }
 
-        // Method to get auction details from Redis cache asynchronously
         public async Task<LocalAuctionDetails> GetAuctionDetailsAsync(Guid auctionId)
         {
-            // Get the JSON string from Redis cache for the specified auction ID
-            var json = await _database.StringGetAsync(auctionId.ToString());
-
-            // Deserialize the JSON string to a LocalAuctionDetails object
-            return json.IsNullOrEmpty ? null : JsonSerializer.Deserialize<LocalAuctionDetails>(json);
+            try
+            {
+                var json = await _database.StringGetAsync(auctionId.ToString());
+                _logger.LogInformation("Get auction details for Auction ID: {AuctionId}", auctionId);
+                return json.IsNullOrEmpty ? null : JsonSerializer.Deserialize<LocalAuctionDetails>(json);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting auction details for Auction ID: {AuctionId}", auctionId);
+                throw;
+            }
         }
     }
 }

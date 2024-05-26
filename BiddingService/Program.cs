@@ -76,11 +76,12 @@ builder.Services.AddSingleton<IVaultRepository>(vaultService);
 // Register RedisCacheService
 builder.Services.AddSingleton<RedisCacheService>(sp =>
 {
+    var logger = sp.GetRequiredService<ILogger<RedisCacheService>>();
     string redisPassword = RedisPW;
     int defaultDatabaseIndex = 0;
     string redisConnectionString = $"{redisConnect},DefaultDatabase={defaultDatabaseIndex}";
     Console.WriteLine($"RedisConnect: {redisConnectionString}");
-    return new RedisCacheService(redisConnectionString, redisPassword);
+    return new RedisCacheService(redisConnectionString, redisPassword, logger);
 });
 
 // Configure RabbitMQ settings OBS: BRUGER IKKE SETTINGSKLASSEN, MEN APPSETTINGS
