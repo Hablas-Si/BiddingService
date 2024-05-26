@@ -115,7 +115,7 @@ namespace BiddingService.Repositories
             Console.WriteLine("DETAILS EXTERNAL ENTERED");
             var httpClient = new HttpClient();
 
-            var response = await httpClient.GetAsync($"http://auctionservice:3020/api/Auction/{auctionID}");
+            var response = await httpClient.GetAsync($"http://auctionservice/api/Auction/{auctionID}");
             response.EnsureSuccessStatusCode();
 
             Console.WriteLine("RESPONSE FROM AUCSERVICE RECIEVED");
