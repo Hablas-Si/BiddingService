@@ -1,4 +1,4 @@
-﻿using BiddingService.Models;
+using BiddingService.Models;
 using MongoDB.Driver;
 using Microsoft.Extensions.Options;
 using System.Net.Http.Headers;
@@ -115,7 +115,7 @@ namespace BiddingService.Repositories
             Console.WriteLine("DETAILS EXTERNAL ENTERED");
             var httpClient = new HttpClient();
 
-            var response = await httpClient.GetAsync($"http://172.20.0.10:8080/api/Auction/{auctionID}");
+            var response = await httpClient.GetAsync($"/api/Auction/{auctionID}");
             response.EnsureSuccessStatusCode();
 
             Console.WriteLine("RESPONSE FROM AUCSERVICE RECIEVED");
