@@ -29,6 +29,8 @@ namespace BiddingService.Controllers
         public async Task<IActionResult> SubmitBid([FromBody] Bid bid)
         {
             // Submit the bid
+            Console.WriteLine("Bid Controller:");
+            Console.WriteLine(bid);
             bool bidAccepted = await _service.SubmitBid(bid);
 
             // Check if the bid was accepted
