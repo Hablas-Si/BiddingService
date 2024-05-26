@@ -2,7 +2,7 @@
 {
     public class RabbitMQSettings
     {
-        public string Hostname { get; set; } = "localhost";
+        public string Hostname { get; set; } = "rabbitmq-1";
         public string QueueName { get; set; } = "BidToAuc";
     }
 }
