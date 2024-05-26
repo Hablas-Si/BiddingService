@@ -44,11 +44,17 @@ namespace BiddingService.Repositories
         // Method to validate and update the highest bid if the new bid is higher
         public async Task<bool> SubmitBid(Bid bid)
         {
+            Console.WriteLine("SUBMIT BID TRIGGERED, REPO");
             var auctionDetails = await GetOrCheckAuctionDetails(bid.Auction); // Gets current high bid and end time
+
+            Console.WriteLine("GET DETAILS PASSED");
 
             //This checks if given bid is higher than the existing one, and if auction is still live
             if (bid.Amount > auctionDetails.HighestBid && DateTime.UtcNow.AddHours(2) < auctionDetails.EndTime)
             {
+
+                Console.WriteLine("BID ACCEPTED, STATEMENT TRIGGERED");
+
                 // Update the highest bid in Redis cache
                 auctionDetails.HighestBid = bid.Amount;
                 await _redisCacheService.SetAuctionDetailsAsync(bid.Auction, auctionDetails);
