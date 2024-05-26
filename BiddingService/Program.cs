@@ -84,14 +84,17 @@ builder.Services.AddSingleton<RedisCacheService>(sp =>
 });
 
 
-builder.Services.Configure<RabbitMQSettings>(builder.Configuration.GetSection("RabbitMQSettings")); 
+builder.Services.Configure<RabbitMQSettings>(builder.Configuration.GetSection("RabbitMQSettings"));
+
 builder.Services.AddSingleton<RabbitMQPublisher>(sp =>
 {
-    
-    var rabbitMQSettings = sp.GetRequiredService<IOptions<RabbitMQSettings>>().Value;
+    var rabbitMQSettings = new RabbitMQSettings();
+    builder.Configuration.GetSection("RabbitMQSettings").Bind(rabbitMQSettings); // Bind settings from configuration
+
     Console.WriteLine("RabbitMQ Settings:");
     Console.WriteLine(rabbitMQSettings.Hostname);
     Console.WriteLine(rabbitMQSettings.QueueName);
+
     return new RabbitMQPublisher(rabbitMQSettings.Hostname, rabbitMQSettings.QueueName);
 });
 
