@@ -74,13 +74,12 @@ builder.Services.Configure<MongoDBSettings>(options =>
 builder.Services.AddSingleton<IVaultRepository>(vaultService);
 
 // Register RedisCacheService
+var redisConnectionString = "redis-16675.c56.east-us.azure.redns.redis-cloud.com:16675";
+var redisPassword = "0rIwX58ixdvj6btmfJrxvsxaMn3s4uta";
+
 builder.Services.AddSingleton<RedisCacheService>(sp =>
 {
     var logger = sp.GetRequiredService<ILogger<RedisCacheService>>();
-    string redisPassword = RedisPW;
-    int defaultDatabaseIndex = 0;
-    string redisConnectionString = $"{redisConnect},DefaultDatabase={defaultDatabaseIndex}";
-    Console.WriteLine($"RedisConnect: {redisConnectionString}");
     return new RedisCacheService(redisConnectionString, redisPassword, logger);
 });
 
