@@ -97,22 +97,8 @@ builder.Services.AddSingleton<RabbitMQPublisher>(sp =>
 
     return new RabbitMQPublisher(rabbitMQSettings.Hostname, rabbitMQSettings.QueueName);
 });
-
-var auctionServiceUrl = Environment.GetEnvironmentVariable("auctionServiceUrl");
-if (string.IsNullOrEmpty(auctionServiceUrl))
-{
-    logger.Error("auctionServiceUrl is missing");
-    throw new ApplicationException("auctionServiceUrl is missing");
-}
-else
-{
-    logger.Info("auctionServiceUrl is: " + auctionServiceUrl);
-}
 // tilf�jer Repository til services
-builder.Services.AddSingleton<IBiddingRepository, BiddingRepository>(client =>
-{
-    client.BaseAddress = new Uri(auctionServiceUrl);
-});
+builder.Services.AddSingleton<IBiddingRepository, BiddingRepository>();
 
 
 builder.Services.AddControllers();
