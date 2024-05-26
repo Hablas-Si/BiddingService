@@ -111,7 +111,7 @@ else
 // tilf�jer Repository til services
 builder.Services.AddSingleton<IBiddingRepository, BiddingRepository>(client =>
 {
-    //client.BaseAddress = new Uri(auctionServiceUrl);
+    client.BaseAddress = new Uri(auctionServiceUrl);
 });
 
 
