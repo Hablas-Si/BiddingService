@@ -103,7 +103,7 @@ namespace BiddingService.Repositories
         {
             var httpClient = new HttpClient();
 
-            var response = await httpClient.GetAsync($"http://localhost:5188/Auction/{auctionID}");
+            var response = await httpClient.GetAsync($"http://localhost:4000/Auction/{auctionID}");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
