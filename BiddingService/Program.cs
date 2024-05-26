@@ -30,6 +30,7 @@ var mySecret = await vaultService.GetSecretAsync("Secret");
 var myIssuer = await vaultService.GetSecretAsync("Issuer");
 var RedisPW = await vaultService.GetSecretAsync("RedisPW");
 var redisConnect = await vaultService.GetSecretAsync("redisConnect");
+
 Console.WriteLine($"Secret: {mySecret} and Issuer: {myIssuer}");
 Console.WriteLine($"RedisPW: {RedisPW}");
 Console.WriteLine($"redisConnect: {redisConnect}");
@@ -83,6 +84,7 @@ builder.Services.AddSingleton<RedisCacheService>(sp =>
 
     // Construct the Redis connection string with the password and default database index
     string redisConnectionString = $"{redisConnect},DefaultDatabase={defaultDatabaseIndex}";
+    Console.WriteLine("RedisConnect: ", redisConnectionString);
     return new RedisCacheService(redisConnectionString, redisPassword);
 });
 
