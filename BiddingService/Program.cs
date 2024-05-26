@@ -83,7 +83,7 @@ builder.Services.AddSingleton<RedisCacheService>(sp =>
     return new RedisCacheService(redisConnectionString, redisPassword, logger);
 });
 
-// Configure RabbitMQ settings OBS: BRUGER IKKE SETTINGSKLASSEN, MEN APPSETTINGS
+
 builder.Services.Configure<RabbitMQSettings>(builder.Configuration.GetSection("RabbitMQSettings")); 
 builder.Services.AddSingleton<RabbitMQPublisher>(sp =>
 {
