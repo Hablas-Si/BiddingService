@@ -86,15 +86,20 @@ namespace BiddingService.Repositories
         // Method to get or check the highest bid for a given auction ID
         public async Task<LocalAuctionDetails> GetOrCheckAuctionDetails(Guid auctionID)
         {
+            Console.WriteLine("GET OR CHECK ENTERED");
             // Attempt to retrieve auction details from Redis cache
             var auctionDetails = await _redisCacheService.GetAuctionDetailsAsync(auctionID);
+
+            Console.WriteLine("REDIS CHECKED");
 
             // If auction details are found in cache, return them
             if (auctionDetails != null)
             {
+                Console.WriteLine("DETAILS IN REDIS, RETURNED");
                 return auctionDetails;
             }
 
+            Console.WriteLine("DETAILS NOT IN REDIS, FETCHING EXTERNAL");
             // Auction details not found in cache, fetch from external source
             var details = await GetAuctionDetailsExternal(auctionID);
 
@@ -107,10 +112,13 @@ namespace BiddingService.Repositories
         // Method to fetch the highest bid from an external service by retrieving the entire auction element
         private async Task<LocalAuctionDetails> GetAuctionDetailsExternal(Guid auctionID)
         {
+            Console.WriteLine("DETAILS EXTERNAL ENTERED");
             var httpClient = new HttpClient();
 
             var response = await httpClient.GetAsync($"http://auth-test-env-auctionservice-1:3020/api/Auction/{auctionID}");
             response.EnsureSuccessStatusCode();
+
+            Console.WriteLine("RESPONSE FROM AUCSERVICE RECIEVED");
 
             var content = await response.Content.ReadAsStringAsync();
 
