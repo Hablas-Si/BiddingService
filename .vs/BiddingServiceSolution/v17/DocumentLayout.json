@@ -1,0 +1,41 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Bruger\\Desktop\\4. sem projekt\\BiddingService\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{8558A39D-0545-4278-B86B-2A1C864B497E}|BiddingService\\BiddingService.csproj|c:\\users\\bruger\\desktop\\4. sem projekt\\biddingservice\\biddingservice\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8558A39D-0545-4278-B86B-2A1C864B497E}|BiddingService\\BiddingService.csproj|solutionrelative:biddingservice\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{13b12e3e-c1b4-4539-9371-4fe9a0d523fc}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\Bruger\\Desktop\\4. sem projekt\\BiddingService\\BiddingService\\Program.cs",
+              "RelativeDocumentMoniker": "BiddingService\\Program.cs",
+              "ToolTip": "C:\\Users\\Bruger\\Desktop\\4. sem projekt\\BiddingService\\BiddingService\\Program.cs",
+              "RelativeToolTip": "BiddingService\\Program.cs",
+              "ViewState": "AQIAAE8AAAAAAAAAAAAuwGEAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-24T11:43:21.699Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
