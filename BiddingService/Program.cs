@@ -99,14 +99,14 @@ builder.Services.AddSingleton<RabbitMQPublisher>(sp =>
 });
 
 var auctionServiceUrl = Environment.GetEnvironmentVariable("auctionServiceUrl");
-if (string.IsNullOrEmpty(userServiceUrl))
+if (string.IsNullOrEmpty(auctionServiceUrl))
 {
     logger.Error("auctionServiceUrl is missing");
     throw new ApplicationException("auctionServiceUrl is missing");
 }
 else
 {
-    logger.Info("auctionServiceUrl is: " + userServiceUrl);
+    logger.Info("auctionServiceUrl is: " + auctionServiceUrl);
 }
 // tilf�jer Repository til services
 builder.Services.AddSingleton<IBiddingRepository, BiddingRepository>(client =>
