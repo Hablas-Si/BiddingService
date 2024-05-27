@@ -11,7 +11,7 @@ public class Bid
     public int Amount { get; set; }
     [Required(ErrorMessage = "Udfyld venligst hvilken auktion du ønsker at byde på")]
     public Guid Auction {  get; set; }
-    public bool Accepted { get; set; }
+    public bool Accepted { get; set; } = false;
     public DateTime Created { get; set; } = DateTime.UtcNow.AddHours(2); //There is a better way to do this, but this is easier. See TimeZoneInfo.ConvertTimeFromUtc
 
     // Constructor
@@ -21,7 +21,6 @@ public class Bid
         BidOwner = userID;
         Amount = amount;
         Auction = auction;
-        Accepted = false; // False som default. Changes to true if validation passed
     }
     public Bid()
     {

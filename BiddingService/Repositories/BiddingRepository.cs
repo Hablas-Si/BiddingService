@@ -73,8 +73,16 @@ namespace BiddingService.Repositories
                 auctionDetails.HighestBid = bid.Amount;
                 await _redisCacheService.SetAuctionDetailsAsync(bid.Auction, auctionDetails);
 
-                // Declaring bid status as accepted
                 bid.Accepted = true;
+
+                Console.WriteLine("Redis updated");
+                Console.WriteLine(bid.Amount);
+                Console.WriteLine(bid.Accepted);
+                Console.WriteLine(bid.Auction);
+                Console.WriteLine(bid.BidOwner);
+                Console.WriteLine(bid.Created);
+                // Declaring bid status as accepted
+
 
                 // Inserting bid into bid service database
                 await BidCollection.InsertOneAsync(bid);
