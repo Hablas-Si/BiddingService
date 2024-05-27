@@ -28,12 +28,12 @@ var vaultService = new VaultRepository(logger, builder.Configuration);
 var mySecret = await vaultService.GetSecretAsync("Secret");
 var myIssuer = await vaultService.GetSecretAsync("Issuer");
 var RedisPW = await vaultService.GetSecretAsync("RedisPW");
-var redisConnect = await vaultService.GetSecretAsync("redisConnect");
+var redisConnectionString = await vaultService.GetSecretAsync("redisConnect");
 
 Console.WriteLine($"Secret: {mySecret} and Issuer: {myIssuer}");
 Console.WriteLine($"RedisPW: {RedisPW}");
-Console.WriteLine($"redisConnect: {redisConnect}");
-if (mySecret == null || myIssuer == null || RedisPW == null || redisConnect == null)
+Console.WriteLine($"redisConnect: {redisConnectionString}");
+if (mySecret == null || myIssuer == null || RedisPW == null || RedisPW == null)
 {
     Console.WriteLine("Failed to retrieve secrets from Vault");
     throw new ApplicationException("Failed to retrieve secrets from Vault");
@@ -74,14 +74,10 @@ builder.Services.Configure<MongoDBSettings>(options =>
 // Tilføjer Repository til services.
 builder.Services.AddSingleton<IVaultRepository>(vaultService);
 
-// Register RedisCacheService
-var redisConnectionString = "redis-16675.c56.east-us.azure.redns.redis-cloud.com:16675";
-var redisPassword = "0rIwX58ixdvj6btmfJrxvsxaMn3s4uta";
-
 builder.Services.AddSingleton<RedisCacheService>(sp =>
 {
     var logger = sp.GetRequiredService<ILogger<RedisCacheService>>();
-    return new RedisCacheService(redisConnectionString, redisPassword, logger);
+    return new RedisCacheService(redisConnectionString, RedisPW, logger);
 });
 
 builder.Services.Configure<RabbitMQSettings>(builder.Configuration.GetSection("RabbitMQSettings"));
