@@ -50,6 +50,11 @@ namespace BiddingService.Repositories
         public async Task<bool> SubmitBid(Bid bid)
         {
             Console.WriteLine("SUBMIT BID TRIGGERED, REPO");
+
+            Console.WriteLine(bid.Auction);
+            Console.WriteLine(bid.Amount);
+            Console.WriteLine(bid.BidOwner);
+
             var auctionDetails = await GetOrCheckAuctionDetails(bid.Auction); // Gets current high bid and end time
 
             Console.WriteLine("GET DETAILS PASSED");
