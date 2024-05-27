@@ -114,6 +114,8 @@ builder.Services.AddHttpClient<IBiddingRepository, BiddingRepository>(client =>
     client.BaseAddress = new Uri(auctionServiceUrl);
 });
 
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

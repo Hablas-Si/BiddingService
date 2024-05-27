@@ -9,6 +9,7 @@ using StackExchange.Redis;
 using BiddingService.Services;
 using BiddingService.Settings;
 using System.Net.Http;
+using Microsoft.AspNetCore.Http;
 
 namespace BiddingService.Repositories
 {
@@ -22,7 +23,9 @@ namespace BiddingService.Repositories
 
         private readonly HttpClient _httpClient;
 
-        public BiddingRepository(IOptions<MongoDBSettings> mongoDBSettings, RedisCacheService redisCacheService, RabbitMQPublisher publisher, HttpClient httpClient)
+        private readonly IHttpContextAccessor _contextAccessor;
+
+        public BiddingRepository(IOptions<MongoDBSettings> mongoDBSettings, RedisCacheService redisCacheService, RabbitMQPublisher publisher, HttpClient httpClient, IHttpContextAccessor contextAccessor)
         {
             // trækker connection string og database navn og collectionname fra program.cs aka fra terminalen ved export. Dette er en constructor injection.
             MongoClient client = new MongoClient(mongoDBSettings.Value.ConnectionAuctionDB);
@@ -31,6 +34,7 @@ namespace BiddingService.Repositories
             _redisCacheService = redisCacheService;
             _publisher = publisher;
             _httpClient = httpClient;
+            _contextAccessor = contextAccessor;
         }
 
         //Method gets all bids posted to a specific auction. Both accepted and unaccepted ones
@@ -122,6 +126,11 @@ namespace BiddingService.Repositories
         // Method to fetch the highest bid from an external service by retrieving the entire auction element
         private async Task<LocalAuctionDetails> GetAuctionDetailsExternal(Guid auctionID)
         {
+
+            // gemmer token til kald på auctionservice (kræver rolle på auctionservice)
+            var token = _contextAccessor.HttpContext.Request.Headers["Authorization"].ToString();
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token.Replace("Bearer ", ""));
+
             Console.WriteLine("DETAILS EXTERNAL ENTERED FOR GUID:");
             Console.WriteLine(auctionID);
             var response = await _httpClient.GetAsync($"api/Auction/{auctionID}");
