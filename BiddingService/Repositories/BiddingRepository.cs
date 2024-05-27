@@ -118,7 +118,6 @@ namespace BiddingService.Repositories
         private async Task<LocalAuctionDetails> GetAuctionDetailsExternal(Guid auctionID)
         {
             Console.WriteLine("DETAILS EXTERNAL ENTERED");
-            var _httpClient = new HttpClient();
 
             var response = await _httpClient.GetAsync($"api/Auction/{auctionID}");
             response.EnsureSuccessStatusCode();
