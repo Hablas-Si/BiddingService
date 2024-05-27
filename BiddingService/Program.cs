@@ -103,6 +103,7 @@ builder.Services.AddSingleton<IBiddingRepository, BiddingRepository>();
 
 // Configure HttpClient for AuctionService using the environment variable auctionServiceUrl
 var auctionServiceUrl = Environment.GetEnvironmentVariable("auctionServiceUrl");
+Console.WriteLine(auctionServiceUrl);
 if (string.IsNullOrEmpty(auctionServiceUrl))
 {
     logger.Error("auctionServiceUrl is missing");
