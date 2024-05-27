@@ -115,7 +115,7 @@ namespace BiddingService.Repositories
             Console.WriteLine("DETAILS EXTERNAL ENTERED");
             var httpClient = new HttpClient();
 
-            var response = await httpClient.GetAsync($"/api/Auction/{auctionID}");
+            var response = await httpClient.GetAsync($"http://auth-test-env-auctionservice-1:3020/api/Auction/{auctionID}");
             response.EnsureSuccessStatusCode();
 
             Console.WriteLine("RESPONSE FROM AUCSERVICE RECIEVED");
