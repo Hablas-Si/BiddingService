@@ -46,18 +46,13 @@ namespace BiddingService.Controllers
             }
         }
 
-        [HttpGet]
-        public async Task<int> Dummy()
-        {  
-            return 100;
-        }
-
-        [HttpGet("get/{auctionID}"), Authorize(Roles = "Admin")]
+        [HttpPost("get/{auctionID}")]
         public async Task<IActionResult> GetAuctionBids([FromRoute] Guid auctionID)
         {
             var bids = await _service.GetAuctionBids(auctionID);
             return Ok(bids);
         }
+
 
         //TEST ENVIRONMENT
         // OBS: TIlføj en Authorize attribute til metoderne nedenunder Kig ovenfor i jwt token creation.
@@ -67,31 +62,6 @@ namespace BiddingService.Controllers
 
             // Hvis brugeren har en gyldig JWT-token og rollen "Admin", vil denne metode blive udført
             return Ok("Du har ret til at se denne ressource");
-        }
-
-        // En get der henter secrets ned fra vault
-        [AllowAnonymous]
-        [HttpGet("getsecret/{path}")]
-        public async Task<IActionResult> GetSecret(string path)
-        {
-            try
-            {
-                _logger.LogInformation($"Henter hemmelighed via {path}");
-                var secretValue = await _vaultService.GetSecretAsync(path);
-                if (secretValue != null)
-                {
-                    return Ok(secretValue);
-                }
-                else
-                {
-                    return NotFound();
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Kunne ikke hente hemmelighed: {ex}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Hemmelighed kunne ikke hentes.");
-            }
         }
     }
 }
