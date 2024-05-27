@@ -117,8 +117,8 @@ namespace BiddingService.Repositories
         // Method to fetch the highest bid from an external service by retrieving the entire auction element
         private async Task<LocalAuctionDetails> GetAuctionDetailsExternal(Guid auctionID)
         {
-            Console.WriteLine("DETAILS EXTERNAL ENTERED");
-
+            Console.WriteLine("DETAILS EXTERNAL ENTERED FOR GUID:");
+            Console.WriteLine(auctionID);
             var response = await _httpClient.GetAsync($"api/Auction/{auctionID}");
             response.EnsureSuccessStatusCode();
 
