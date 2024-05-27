@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 using StackExchange.Redis;
 using BiddingService.Services;
 using BiddingService.Settings;
+using System.Net.Http;
 
 namespace BiddingService.Repositories
 {
@@ -19,7 +20,9 @@ namespace BiddingService.Repositories
 
         private readonly RabbitMQPublisher _publisher;
 
-        public BiddingRepository(IOptions<MongoDBSettings> mongoDBSettings, RedisCacheService redisCacheService, RabbitMQPublisher publisher)
+        private readonly HttpClient _httpClient;
+
+        public BiddingRepository(IOptions<MongoDBSettings> mongoDBSettings, RedisCacheService redisCacheService, RabbitMQPublisher publisher, HttpClient httpClient)
         {
             // trækker connection string og database navn og collectionname fra program.cs aka fra terminalen ved export. Dette er en constructor injection.
             MongoClient client = new MongoClient(mongoDBSettings.Value.ConnectionAuctionDB);
@@ -27,7 +30,9 @@ namespace BiddingService.Repositories
             BidCollection = database.GetCollection<Bid>(mongoDBSettings.Value.CollectionName);
             _redisCacheService = redisCacheService;
             _publisher = publisher;
+            _httpClient = httpClient;
         }
+
         //Method gets all bids posted to a specific auction. Both accepted and unaccepted ones
         public async Task<List<Bid>> GetAuctionBids(Guid auctionID)
         {
@@ -115,7 +120,7 @@ namespace BiddingService.Repositories
             Console.WriteLine("DETAILS EXTERNAL ENTERED");
             var httpClient = new HttpClient();
 
-            var response = await httpClient.GetAsync($"http://auth-test-env-auctionservice-1:3020/api/Auction/{auctionID}");
+            var response = await httpClient.GetAsync($"api/Auction/{auctionID}");
             response.EnsureSuccessStatusCode();
 
             Console.WriteLine("RESPONSE FROM AUCSERVICE RECIEVED");
