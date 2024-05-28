@@ -88,7 +88,7 @@ namespace BiddingService.Repositories
                 await BidCollection.InsertOneAsync(bid);
 
                 // Preparing new high bid object
-                var newBid = new BidMessage { AuctionId = bid.Id, Amount = bid.Amount, Bidder = bid.BidOwner };
+                var newBid = new BidMessage { AuctionId = bid.Auction, Amount = bid.Amount, Bidder = bid.BidOwner };
 
                 // Post the new highest bid to AuctionService
                 await SubmitValidatedBid(newBid);
