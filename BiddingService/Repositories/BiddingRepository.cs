@@ -64,6 +64,7 @@ namespace BiddingService.Repositories
             Console.WriteLine("GET DETAILS PASSED");
 
             //This checks if given bid is higher than the existing one, and if auction is still live
+            //Currently not checking if an auction has STARTED. To be implemented after POC phase
             if (bid.Amount > auctionDetails.HighestBid && DateTime.UtcNow.AddHours(2) < auctionDetails.EndTime)
             {
 
