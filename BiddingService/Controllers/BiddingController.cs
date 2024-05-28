@@ -37,7 +37,7 @@ namespace BiddingService.Controllers
             if (bidAccepted)
             {
                 // Return success response
-                return Ok("Bud modtaget");
+                return Ok(bid);
             }
             else
             {
