@@ -25,7 +25,7 @@ namespace BiddingService.Controllers
         }
 
 
-        [HttpPost]
+        [HttpPost, Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> SubmitBid([FromBody] Bid bid)
         {
             // Submit the bid
