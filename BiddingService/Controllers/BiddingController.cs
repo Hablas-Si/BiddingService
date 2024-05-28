@@ -46,7 +46,7 @@ namespace BiddingService.Controllers
             }
         }
 
-        [HttpPost("get/{auctionID}"), Authorize(Roles = "Admin")]
+        [HttpGet("get/{auctionID}"), Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAuctionBids([FromRoute] Guid auctionID)
         {
             var bids = await _service.GetAuctionBids(auctionID);
